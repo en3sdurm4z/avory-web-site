@@ -1,4 +1,4 @@
-export type Tier = "low" | "mid";
+export type Tier = "low" | "mid" | "high";
 export type Category = "Genel" | "Özel";
 
 export type Template = {
@@ -23,10 +23,12 @@ export const templates: Template[] = [
     previewByTier: {
       low: "/previews/general-low.jpg",
       mid: "/previews/general-mid.jpg",
+      high: "/previews/general-mid.jpg",
     },
     prices: {
       low: 1490,
       mid: 2490,
+      high: 3490,
     },
   },
   {
@@ -39,10 +41,12 @@ export const templates: Template[] = [
     previewByTier: {
       low: "/previews/love-low.jpg",
       mid: "/previews/love-mid.jpg",
+      high: "/previews/love-mid.jpg",
     },
     prices: {
       low: 1690,
       mid: 2790,
+      high: 3890,
     },
     badge: {
       text: "NEW",

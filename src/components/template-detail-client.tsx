@@ -1,8 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { Template, Tier } from "@/data/templates";
-import { useState } from "react";
+import { templates, Tier } from "@/data/templates";
+import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+
+const PHONE = "905384310623"; // 90 ile başlasın (TR)
 
 const tierLabel: Record<Tier, string> = {
   low: "Düşük",
@@ -10,111 +13,149 @@ const tierLabel: Record<Tier, string> = {
   high: "Yüksek",
 };
 
-export default function TemplateDetailClient({ t }: { t: Template }) {
-  const [tier, setTier] = useState<Tier>("mid");
+function isTier(v: string | null): v is Tier {
+  return v === "low" || v === "mid" || v === "high";
+}
+
+export default function OrderClient() {
+  const sp = useSearchParams();
+
+  const rawTier = sp.get("tier");
+  const tier: Tier = isTier(rawTier) ? rawTier : "mid";
+
+  const rawTemplate = sp.get("template");
+  const fallbackSlug = templates[0]?.slug || "";
+  const templateSlug = rawTemplate && rawTemplate.trim() ? rawTemplate : fallbackSlug;
+
+  const t = templates.find((x) => x.slug === templateSlug) ?? templates[0];
+
+  if (!t) {
+    return (
+      <section className="mx-auto max-w-6xl pt-10 md:pt-14">
+        <div className="lux-card p-6 md:p-8">
+          <h1 className="text-2xl font-semibold">Şu an model bulunamadı</h1>
+          <p className="lux-muted mt-2">
+            Template listesi boş görünüyor. Lütfen /data/templates dosyanı kontrol et.
+          </p>
+          <Link href="/templates" className="lux-btn inline-block mt-4 px-5 py-3 text-sm font-medium">
+            Tasarımlara dön
+          </Link>
+        </div>
+      </section>
+    );
+  }
 
   const price = t.prices[tier];
-  const features = t.features[tier];
+
+  const [name, setName] = useState("");
+  const [project, setProject] = useState("");
+  const [note, setNote] = useState("");
+
+  const message = useMemo(() => {
+    const lines = [
+      "Merhaba, Avory Web üzerinden teklif almak istiyorum.",
+      "",
+      `• Seçtiğim model: ${t.title}`,
+      `• Paket: ${tierLabel[tier]}`,
+      `• Fiyat: ${price} TL`,
+      "",
+      "Bu modele göre web sitemin kurulmasını istiyorum.",
+      "",
+      `Ad Soyad: ${name || "-"}`,
+      `İş/Proje: ${project || "-"}`,
+      `Not: ${note || "-"}`,
+    ];
+    return encodeURIComponent(lines.join("\n"));
+  }, [t.title, tier, price, name, project, note]);
+
+  const waLink = `https://api.whatsapp.com/send?phone=${PHONE}&text=${message}`;
 
   return (
     <section className="mx-auto max-w-6xl pt-10 md:pt-14">
       <div className="lux-card p-6 md:p-8">
-        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
+        <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
-            <h1 className="text-2xl md:text-3xl font-semibold">{t.title}</h1>
-            <p className="lux-muted mt-2 max-w-2xl">{t.shortDesc}</p>
-
-            <div className="mt-4 flex flex-wrap gap-2">
-              {t.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="text-xs rounded-full border border-white/12 bg-white/5 px-3 py-1 lux-muted"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
+            <h1 className="text-2xl md:text-3xl font-semibold">Teklif Al</h1>
+            <p className="lux-muted mt-2">
+              Şablon satmıyoruz — seçtiğin modele göre web siteni kurup teslim ediyoruz.
+            </p>
           </div>
 
-          <div className="lux-card p-5 w-full md:w-[380px]">
-            <div className="text-sm lux-muted">Paket seç</div>
-
-            <div className="mt-3 grid grid-cols-3 gap-2">
-              {(["low", "mid", "high"] as Tier[]).map((k) => {
-                const active = tier === k;
-                return (
-                  <button
-                    key={k}
-                    type="button"
-                    onClick={() => setTier(k)}
-                    className={
-                      active
-                        ? "lux-btn px-3 py-2 text-sm font-medium"
-                        : "rounded-full border border-white/12 bg-white/5 hover:bg-white/10 transition px-3 py-2 text-sm"
-                    }
-                  >
-                    {tierLabel[k]}
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className="mt-4 flex items-center justify-between">
-              <div className="text-sm lux-muted">Seçili paket</div>
-              <div className="text-sm font-semibold">
-                {tierLabel[tier]} • <span className="lux-gold">{price} TL</span>
-              </div>
-            </div>
-
-            <Link
-              href={`/order?template=${t.slug}&tier=${tier}`}
-              className="lux-btn block mt-5 px-4 py-3 text-sm font-medium text-center"
-            >
-              Bu paketle teklif al
-            </Link>
-
-            <div className="mt-3 text-xs lux-muted">
-              * Paket içeriği işine göre netleştirilir.
-            </div>
-          </div>
+          <Link
+            href="/templates"
+            className="rounded-full border border-white/12 bg-white/5 hover:bg-white/10 transition px-4 py-2 text-sm font-medium"
+          >
+            Model değiştir
+          </Link>
         </div>
-
-        <div className="mt-6 h-56 rounded-2xl border border-white/10 bg-white/5" />
 
         <div className="grid md:grid-cols-2 gap-5 mt-6">
           <div className="lux-card p-5">
-            <div className="lux-gold font-semibold">
-              {tierLabel[tier]} Paket İçeriği
+            <div className="text-sm lux-muted">Seçimin</div>
+            <div className="mt-2 text-lg font-semibold">{t.title}</div>
+
+            <div className="mt-3 flex flex-wrap gap-2">
+              <span className="text-xs rounded-full border border-white/12 bg-white/5 px-3 py-1 lux-muted">
+                Paket: {tierLabel[tier]}
+              </span>
+              <span className="text-xs rounded-full border border-white/12 bg-white/5 px-3 py-1 lux-muted">
+                Fiyat: <span className="text-white">{price} TL</span>
+              </span>
             </div>
-            <ul className="mt-3 space-y-2 text-sm lux-muted">
-              {features.map((f) => (
-                <li key={f}>• {f}</li>
-              ))}
-            </ul>
+
+            <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm lux-muted">
+              İstersen bilgileri doldur, WhatsApp mesajı otomatik hazırlanacak.
+            </div>
 
             <div className="mt-4 text-xs lux-muted">
-              Teslim süresi:{" "}
-              <span className="text-white">
-                {tier === "low" ? "1-2 gün" : tier === "mid" ? "2-4 gün" : "4-7 gün"}
-              </span>
+              * Paket içeriği ve teslim süresi işine göre netleştirilir.
             </div>
           </div>
 
           <div className="lux-card p-5">
-            <div className="lux-gold font-semibold">Süreç</div>
-            <ol className="mt-3 space-y-2 text-sm lux-muted">
-              <li>1) Tasarımı ve paketi seç</li>
-              <li>2) İçerik/isteklerini ilet</li>
-              <li>3) İlk taslağı gönderelim</li>
-              <li>4) Siteyi yayına alalım</li>
-            </ol>
+            <label className="block text-sm lux-muted">Ad Soyad (opsiyonel)</label>
+            <input
+              className="mt-2 w-full rounded-2xl border border-white/12 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/35 outline-none focus:border-white/25 transition"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Örn: Enes Durmaz"
+            />
 
-            <div className="mt-4 rounded-2xl border border-white/12 bg-white/5 p-4 text-sm lux-muted">
-              “Şablon satmıyoruz — seçtiğin modele göre siteni biz kurup teslim ediyoruz.”
+            <label className="block text-sm lux-muted mt-4">İş / Proje (opsiyonel)</label>
+            <input
+              className="mt-2 w-full rounded-2xl border border-white/12 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/35 outline-none focus:border-white/25 transition"
+              value={project}
+              onChange={(e) => setProject(e.target.value)}
+              placeholder="Örn: İşletme / Portfolyo / Sevgiliye Özel"
+            />
+
+            <label className="block text-sm lux-muted mt-4">Not (opsiyonel)</label>
+            <textarea
+              className="mt-2 w-full min-h-[120px] rounded-2xl border border-white/12 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/35 outline-none focus:border-white/25 transition"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="Sayfa sayısı, renkler, örnek site, özel istek..."
+            />
+
+            <a
+              className="lux-btn block mt-5 px-5 py-3 text-sm font-medium text-center"
+              href={waLink}
+              target="_blank"
+              rel="noreferrer"
+            >
+              WhatsApp’tan Teklif İste
+            </a>
+
+            <div className="mt-3 text-xs lux-muted">
+              * WhatsApp mesajı otomatik hazırlanır.
             </div>
           </div>
         </div>
       </div>
+
+      <footer className="py-14 lux-muted text-sm mx-auto max-w-6xl">
+        © {new Date().getFullYear()} Avory Web
+      </footer>
     </section>
   );
 }
