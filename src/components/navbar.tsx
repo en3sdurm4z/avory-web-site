@@ -17,6 +17,12 @@ export default function Navbar() {
             <Link href="/templates" className="text-white/80 hover:text-white transition">
               Tasarımlar
             </Link>
+
+            {/* ✅ Yeni: süreç bölümü */}
+            <Link href="/#process" className="text-white/80 hover:text-white transition">
+              Süreç
+            </Link>
+
             <Link href="/pricing" className="text-white/80 hover:text-white transition">
               Paketler
             </Link>
