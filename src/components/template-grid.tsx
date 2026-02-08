@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { templates } from "@/data/templates";
+import { templates, type Template } from "@/data/templates";
 
 const categoryLabelFallback: Record<string, string> = {
   corporate: "Kurumsal",
@@ -7,12 +7,6 @@ const categoryLabelFallback: Record<string, string> = {
   ecommerce: "E-Ticaret",
   event: "Özel Gün",
 };
-
-const tierLabel = {
-  low: "Başlangıç",
-  mid: "Standart",
-  high: "Premium",
-} as const;
 
 export default function TemplateGrid() {
   const top3 = templates.slice(0, 3);
@@ -36,9 +30,8 @@ export default function TemplateGrid() {
       </div>
 
       <div className="grid md:grid-cols-3 gap-5 pt-6">
-        {top3.map((t: any) => {
-          const cat =
-            categoryLabelFallback[t.category] ?? t.category ?? "Kategori";
+        {top3.map((t: Template) => {
+          const cat = categoryLabelFallback[t.category] ?? t.category ?? "Kategori";
 
           return (
             <div key={t.slug} className="lux-card p-5">
@@ -50,21 +43,21 @@ export default function TemplateGrid() {
               </div>
 
               <h3 className="mt-4 text-lg font-semibold">{t.title}</h3>
-              <p className="mt-2 text-sm lux-muted">{t.shortDesc}</p>
+              <p className="mt-2 text-sm lux-muted">{t.description}</p>
 
-              {/* Tier fiyatları */}
-              <div className="mt-4 grid gap-2">
-                <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-2">
-                  <span className="text-sm">{tierLabel.low}</span>
-                  <span className="text-sm lux-muted">{t.prices?.low} TL</span>
-                </div>
-                <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-2">
-                  <span className="text-sm">{tierLabel.mid}</span>
-                  <span className="text-sm lux-muted">{t.prices?.mid} TL</span>
-                </div>
-                <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-2">
-                  <span className="text-sm">{tierLabel.high}</span>
-                  <span className="text-sm lux-muted">{t.prices?.high} TL</span>
+              {/* ✅ Paketler başlığı */}
+              <div className="mt-4">
+                <div className="text-xs lux-muted mb-2">Paketler</div>
+
+                <div className="grid gap-2">
+                  <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-2">
+                    <span className="text-sm">Düşük</span>
+                    <span className="text-sm lux-muted">{t.prices.low} TL</span>
+                  </div>
+                  <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-2">
+                    <span className="text-sm">Orta</span>
+                    <span className="text-sm lux-muted">{t.prices.mid} TL</span>
+                  </div>
                 </div>
               </div>
 

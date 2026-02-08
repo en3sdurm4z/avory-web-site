@@ -1,28 +1,27 @@
 import Navbar from "@/components/navbar";
-import { templates, Tier } from "@/data/templates";
+import { templates } from "@/data/templates";
 import Link from "next/link";
 
-const tierName: Record<Tier, string> = {
+const tierName: Record<"low" | "mid", string> = {
   low: "Düşük",
   mid: "Orta",
-  high: "Yüksek",
 };
 
-function isTier(v: string | undefined): v is Tier {
-  return v === "low" || v === "mid" || v === "high";
+function isTier(v: string | undefined): v is "low" | "mid" {
+  return v === "low" || v === "mid";
 }
 
 export default async function TemplateDetailPage({
   params,
   searchParams,
 }: {
-  params: Promise<{ slug: string }>;
-  searchParams?: Promise<{ tier?: string }>;
+  params: { slug: string } | Promise<{ slug: string }>;
+  searchParams?: { tier?: string } | Promise<{ tier?: string }>;
 }) {
-  const { slug } = await params;
-  const sp = (await searchParams) || {};
+  const { slug } = await Promise.resolve(params);
+  const sp = await Promise.resolve(searchParams ?? {});
 
-  const tier: Tier = isTier(sp.tier) ? sp.tier : "mid";
+  const tier: "low" | "mid" = isTier(sp.tier) ? sp.tier : "mid";
 
   const t = templates.find((x) => x.slug === slug);
 
@@ -34,7 +33,10 @@ export default async function TemplateDetailPage({
           <div className="lux-card p-6">
             <h1 className="text-xl font-semibold">Model bulunamadı</h1>
             <p className="lux-muted mt-2">Link eski olabilir. Tasarımlara geri dön.</p>
-            <Link href="/templates" className="lux-btn inline-block mt-4 px-4 py-2 text-sm font-medium">
+            <Link
+              href="/templates"
+              className="lux-btn inline-block mt-4 px-4 py-2 text-sm font-medium"
+            >
               Tasarımlara dön
             </Link>
           </div>
@@ -45,7 +47,6 @@ export default async function TemplateDetailPage({
 
   const price = t.prices[tier];
 
-  // Görsel yoksa sorun çıkarmasın: önce seçilen tier, yoksa mid, yoksa low
   const img =
     t.previewByTier?.[tier] ||
     t.previewByTier?.mid ||
@@ -58,22 +59,27 @@ export default async function TemplateDetailPage({
 
       <section className="mx-auto max-w-6xl pt-10 md:pt-14">
         <div className="lux-card overflow-hidden">
-          <div
-            className="h-[300px] md:h-[420px]"
-            style={{
-              backgroundImage: img
-                ? `linear-gradient(to bottom, rgba(0,0,0,.10), rgba(0,0,0,.75)), url('${img}')`
-                : `linear-gradient(to bottom, rgba(0,0,0,.25), rgba(0,0,0,.80))`,
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-            }}
-          />
+          
+          {/* ✅ GÖRSEL ALANI – KIRPMA YOK */}
+          <div className="h-[300px] md:h-[420px] bg-black/25">
+            <div
+              className="h-full w-full"
+              style={{
+                backgroundImage: img ? `url('${img}')` : undefined,
+                backgroundRepeat: "no-repeat",
+                backgroundPosition: "center",
+                backgroundSize: "contain",
+              }}
+            />
+          </div>
 
           <div className="p-6 md:p-8">
             <div className="flex items-start justify-between gap-4 flex-wrap">
               <div>
                 <div className="text-xs lux-muted">{t.category}</div>
-                <h1 className="mt-2 text-2xl md:text-3xl font-semibold">{t.title}</h1>
+                <h1 className="mt-2 text-2xl md:text-3xl font-semibold">
+                  {t.title}
+                </h1>
                 <p className="lux-muted mt-2 text-sm">{t.description}</p>
               </div>
 
@@ -83,7 +89,8 @@ export default async function TemplateDetailPage({
                   Paket: <span className="text-white">{tierName[tier]}</span>
                 </div>
                 <div className="mt-1 text-sm">
-                  Fiyat: <span className="lux-gold font-semibold">{price} TL</span>
+                  Fiyat:{" "}
+                  <span className="lux-gold font-semibold">{price} TL</span>
                 </div>
 
                 <Link
@@ -106,25 +113,48 @@ export default async function TemplateDetailPage({
               ))}
             </div>
 
-            <div className="mt-6 flex gap-3 flex-wrap">
-              <Link
-                href={`/templates/${t.slug}?tier=low`}
-                className="rounded-full border border-white/12 bg-white/5 hover:bg-white/10 transition px-4 py-2 text-sm font-medium"
-              >
-                Düşük
-              </Link>
-              <Link
-                href={`/templates/${t.slug}?tier=mid`}
-                className="rounded-full border border-white/12 bg-white/5 hover:bg-white/10 transition px-4 py-2 text-sm font-medium"
-              >
-                Orta
-              </Link>
-              <Link
-                href={`/templates/${t.slug}?tier=high`}
-                className="rounded-full border border-white/12 bg-white/5 hover:bg-white/10 transition px-4 py-2 text-sm font-medium"
-              >
-                Yüksek
-              </Link>
+            {/* Paket seçimi */}
+            <div className="mt-6">
+              <div className="text-xs lux-muted mb-2">Paketler</div>
+              <div className="flex gap-3 flex-wrap">
+                <Link
+                  href={`/templates/${t.slug}?tier=low`}
+                  className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
+                    tier === "low"
+                      ? "border-white/25 bg-white/12"
+                      : "border-white/12 bg-white/5 hover:bg-white/10"
+                  }`}
+                >
+                  Düşük
+                </Link>
+                <Link
+                  href={`/templates/${t.slug}?tier=mid`}
+                  className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
+                    tier === "mid"
+                      ? "border-white/25 bg-white/12"
+                      : "border-white/12 bg-white/5 hover:bg-white/10"
+                  }`}
+                >
+                  Orta
+                </Link>
+              </div>
+            </div>
+
+            {/* Paket içeriği */}
+            <div className="mt-6 lux-card p-5">
+              <div className="text-sm font-semibold">Paket İçeriği</div>
+              <p className="mt-1 text-xs lux-muted">
+                Seçtiğin pakete göre teslim edilen içerik listesi:
+              </p>
+
+              <ul className="mt-4 space-y-2">
+                {t.included[tier].map((item) => (
+                  <li key={item} className="flex gap-2 text-sm">
+                    <span className="mt-1 h-1.5 w-1.5 rounded-full bg-amber-300/80" />
+                    <span className="lux-muted">{item}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
         </div>

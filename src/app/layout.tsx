@@ -7,6 +7,7 @@ const cinzel = Cinzel({
   weight: ["600", "700"],
   variable: "--font-brand",
 });
+
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-body",
@@ -17,12 +18,14 @@ export const metadata: Metadata = {
   description: "Model seç → biz kurup teslim edelim. Hazır şablon satışı yok.",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="tr" className={`${cinzel.variable} ${inter.variable}`}>
-      <body className="lux-vignette">
-        {children}
-      </body>
+      <body className="lux-vignette">{children}</body>
     </html>
   );
 }

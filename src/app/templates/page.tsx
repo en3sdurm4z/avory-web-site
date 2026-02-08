@@ -1,7 +1,7 @@
 "use client";
 
 import Navbar from "@/components/navbar";
-import { templates, Tier } from "@/data/templates";
+import { templates } from "@/data/templates";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
@@ -12,7 +12,10 @@ export default function TemplatesPage() {
     const s = q.trim().toLowerCase();
     if (!s) return templates;
     return templates.filter((t) =>
-      [t.title, t.description, t.category, t.tags.join(" ")].join(" ").toLowerCase().includes(s)
+      [t.title, t.description, t.category, t.tags.join(" ")]
+        .join(" ")
+        .toLowerCase()
+        .includes(s)
     );
   }, [q]);
 
@@ -23,9 +26,7 @@ export default function TemplatesPage() {
       <section className="mx-auto max-w-6xl pt-10 md:pt-14">
         <div className="lux-card p-6 md:p-8">
           <h1 className="text-2xl md:text-3xl font-semibold">Tasarımlar</h1>
-          <p className="lux-muted mt-2">
-            Model seç → biz kurup teslim edelim. Şablon satışı yok.
-          </p>
+          <p className="lux-muted mt-2">Model seç → biz kurup teslim edelim. Şablon satışı yok.</p>
 
           <div className="mt-5 flex flex-col md:flex-row gap-3">
             <input
@@ -40,14 +41,18 @@ export default function TemplatesPage() {
         <div className="grid md:grid-cols-2 gap-5 mt-6">
           {list.map((t) => (
             <div key={t.slug} className="lux-card overflow-hidden">
-              <div
-                className="h-[200px]"
-                style={{
-                  backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,.15), rgba(0,0,0,.70)), url('${t.previewByTier.mid}')`,
-                  backgroundSize: "cover",
-                  backgroundPosition: "center",
-                }}
-              />
+              {/* ✅ Kırpma yok: contain */}
+              <div className="h-[220px] md:h-[260px] bg-black/25">
+                <div
+                  className="h-full w-full"
+                  style={{
+                    backgroundImage: `url('${t.previewByTier.mid}')`,
+                    backgroundRepeat: "no-repeat",
+                    backgroundPosition: "center",
+                    backgroundSize: "contain",
+                  }}
+                />
+              </div>
 
               <div className="p-5">
                 <div className="flex items-start justify-between gap-3">
@@ -62,9 +67,7 @@ export default function TemplatesPage() {
                         <span className="lux-gold font-semibold">{t.badge.text}</span>
                       </div>
                       {t.badge.note && (
-                        <div className="mt-2 text-xs lux-muted max-w-[220px]">
-                          {t.badge.note}
-                        </div>
+                        <div className="mt-2 text-xs lux-muted max-w-[220px]">{t.badge.note}</div>
                       )}
                     </div>
                   )}
@@ -91,10 +94,7 @@ export default function TemplatesPage() {
                     İncele
                   </Link>
 
-                  <Link
-                    href={`/order?template=${t.slug}&tier=mid`}
-                    className="lux-btn px-4 py-2 text-sm font-medium"
-                  >
+                  <Link href={`/order?template=${t.slug}&tier=mid`} className="lux-btn px-4 py-2 text-sm font-medium">
                     Teklif Al
                   </Link>
                 </div>
